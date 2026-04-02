@@ -6,6 +6,7 @@ from config import Config
 from extensions import db, login_manager, mail, socketio
 from datetime import datetime, timezone, timedelta
 
+app = create_app()
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
