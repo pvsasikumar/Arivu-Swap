@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Hey, {{ current_user.name.split()[0] }} 👋</h1>
+    <a href="{{ url_for('skills.add') }}" class="btn-primary"><i class="fas fa-plus"></i> Add Skill</a>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num">{{ skills|length }}</div>
+      <div class="stat-label">Skills Listed</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ pending }}</div>
+      <div class="stat-label">Pending Requests</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">{{ upcoming }}</div>
+      <div class="stat-label">Upcoming Meetings</div>
+    </div>
+  </div>
+
+  <h2 class="section-title">My Skills</h2>
+  {% if skills %}
+  <div class="skills-grid">
+    {% for skill in skills %}
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <span class="skill-cat">{{ skill.category }}</span>
+        <span class="skill-level level-{{ skill.level }}">{{ skill.level }}</span>
+      </div>
+      <h3>{{ skill.title }}</h3>
+      <p>{{ skill.description[:100] }}{% if skill.description|length > 100 %}…{% endif %}</p>
+      <div class="skill-wants"><i class="fas fa-exchange-alt"></i> Wants: {{ skill.wants }}</div>
+      <div class="skill-actions">
+        <a href="{{ url_for('skills.detail', skill_id=skill.id) }}" class="btn-sm">View</a>
+        <form method="POST" action="{{ url_for('skills.delete', skill_id=skill.id) }}" style="display:inline">
+          <button type="submit" class="btn-sm btn-danger" onclick="return confirm('Delete this skill?')">Delete</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-layer-group"></i>
+    <p>No skills yet. Add your first skill to start swapping!</p>
+    <a href="{{ url_for('skills.add') }}" class="btn-primary">Add a Skill</a>
+  </div>
+  {% endif %}
+
+  <div class="quick-links">
+    <a href="{{ url_for('exchange.manage') }}" class="quick-link"><i class="fas fa-handshake"></i> Manage Exchanges</a>
+    <a href="{{ url_for('meeting.my_sessions') }}" class="quick-link"><i class="fas fa-calendar"></i> My Sessions</a>
+    <a href="{{ url_for('chat.inbox') }}" class="quick-link"><i class="fas fa-comments"></i> Messages</a>
+    <a href="{{ url_for('profile.view', user_id=current_user.id) }}" class="quick-link"><i class="fas fa-user"></i> My Profile</a>
+  </div>
+</div>
+{% endblock %}

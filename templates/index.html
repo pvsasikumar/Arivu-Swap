@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}SkillSwap — Exchange Skills, Grow Together{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <span class="hero-tag">🔄 Peer-to-Peer Learning</span>
+    <h1>Trade Skills.<br><em>Unlock Potential.</em></h1>
+    <p>SkillSwap connects people who want to learn with people who want to teach — for free. No money, just mutual growth.</p>
+    <div class="hero-cta">
+      <a href="{{ url_for('auth.register') }}" class="btn-primary btn-lg">Start Swapping</a>
+      <a href="{{ url_for('skills.browse') }}" class="btn-ghost btn-lg">Browse Skills</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="floating-card card-1"><i class="fas fa-code"></i><span>Python</span></div>
+    <div class="floating-card card-2"><i class="fas fa-palette"></i><span>Design</span></div>
+    <div class="floating-card card-3"><i class="fas fa-music"></i><span>Guitar</span></div>
+    <div class="floating-card card-4"><i class="fas fa-language"></i><span>Spanish</span></div>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+  </div>
+</section>
+
+<section class="how-it-works">
+  <h2>How It Works</h2>
+  <div class="steps">
+    <div class="step"><div class="step-num">01</div><h3>List Your Skill</h3><p>Share what you're good at — coding, cooking, music, languages, design, anything!</p></div>
+    <div class="step"><div class="step-num">02</div><h3>Find a Match</h3><p>Browse skills others offer. Send an exchange request when you find something you want to learn.</p></div>
+    <div class="step"><div class="step-num">03</div><h3>Schedule &amp; Meet</h3><p>Book a session, hop on a video call, and start teaching each other.</p></div>
+  </div>
+</section>
+
+<section class="categories">
+  <h2>Popular Categories</h2>
+  <div class="cat-grid">
+    {% for cat, icon in [('Programming','fa-code'),('Design','fa-palette'),('Music','fa-music'),('Languages','fa-language'),('Fitness','fa-dumbbell'),('Cooking','fa-utensils'),('Business','fa-briefcase'),('Photography','fa-camera')] %}
+    <a href="{{ url_for('skills.browse', category=cat) }}" class="cat-card">
+      <i class="fas {{ icon }}"></i>
+      <span>{{ cat }}</span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="cta-banner">
+  <h2>Ready to start learning?</h2>
+  <p>Join thousands of people exchanging skills every day.</p>
+  <a href="{{ url_for('auth.register') }}" class="btn-primary btn-lg">Create Free Account</a>
+</section>
+{% endblock %}

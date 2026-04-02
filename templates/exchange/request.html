@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% block title %}Request Exchange — SkillSwap{% endblock %}
+
+{% block extra_css %}
+<style>
+  .request-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .recipient-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+
+  .ex-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .recipient-info strong {
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .recipient-info span {
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .ex-skill-tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft, rgba(124,58,237,0.15));
+    color: var(--accent);
+    font-weight: 500;
+    margin-top: 6px;
+  }
+
+  .field-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .field-group label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text);
+  }
+
+  .field-group label .optional {
+    font-weight: 400;
+    color: var(--muted);
+  }
+
+  .field-group select,
+  .field-group textarea {
+    width: 100%;
+    background: var(--input-bg, var(--card-bg));
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    color: var(--text);
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+    resize: vertical;
+    appearance: none;
+  }
+
+  .field-group select:focus,
+  .field-group textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .field-group textarea {
+    min-height: 90px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .btn-send {
+    flex: 1;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 0.65rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-send:hover { opacity: 0.88; }
+
+  .btn-cancel {
+    background: transparent;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 0.65rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container narrow">
+
+  <div class="ex-page-header">
+    <h1>Request Exchange</h1>
+    <p>Propose a skill swap with another member.</p>
+  </div>
+
+  <div class="request-card">
+
+    <!-- Recipient info -->
+    <div class="recipient-row">
+      <img class="ex-avatar"
+           src="{{ url_for('static', filename='avatars/' ~ (skill.owner.avatar or 'default.png')) }}"
+           alt="{{ skill.owner.name }}"/>
+      <div class="recipient-info">
+        <strong>{{ skill.owner.name }}</strong>
+        <span>You want to learn:</span>
+        <div><span class="ex-skill-tag">Wants: {{ skill.title }}</span></div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form method="POST">
+      <div class="field-group">
+        <label>Offer one of your skills in return</label>
+        <select name="skill_offered" required>
+          <option value="">Choose a skill you offer…</option>
+          {% for s in my_skills %}
+          <option value="{{ s.id }}">{{ s.title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field-group">
+        <label>Personal message <span class="optional">(optional)</span></label>
+        <textarea name="message"
+                  placeholder="Introduce yourself and explain why this swap would work…"></textarea>
+      </div>
+
+      <div class="btn-row">
+        <a href="{{ url_for('main.index') }}" class="btn-cancel">Cancel</a>
+        <button type="submit" class="btn-send">✓ Send Request</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

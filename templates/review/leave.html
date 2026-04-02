@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Leave a Review — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <h1>Review {{ user.name }}</h1>
+  <form method="POST" class="form-card">
+    <div class="field-group">
+      <label>Rating</label>
+      <div class="star-rating">
+        {% for i in range(1,6) %}
+        <input type="radio" name="rating" id="star{{ i }}" value="{{ i }}" required/>
+        <label for="star{{ i }}">★</label>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Your Review</label>
+      <textarea name="comment" rows="4" placeholder="Describe your experience learning with {{ user.name }}…" required></textarea>
+    </div>
+    <button type="submit" class="btn-primary btn-full">Submit Review</button>
+  </form>
+</div>
+{% endblock %}

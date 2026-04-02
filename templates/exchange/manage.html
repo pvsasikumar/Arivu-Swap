@@ -1,0 +1,266 @@
+{% extends 'base.html' %}
+{% block title %}Manage Exchanges — SkillSwap{% endblock %}
+{% block extra_css %}
+<style>
+  .ex-page-header {
+    margin-bottom: 2rem;
+  }
+  .ex-page-header h1 {
+    font-size: 2.2rem;
+    margin-bottom: 0.25rem;
+  }
+  .ex-page-header p {
+    color: var(--muted);
+  }
+
+  /* Tabs */
+  .ex-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .ex-tab {
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px 8px 0 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    background: transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    position: relative;
+    bottom: -1px;
+  }
+  .ex-tab.active {
+    background: var(--card-bg);
+    border-color: var(--border);
+    color: var(--text);
+  }
+  .ex-tab .tab-count {
+    background: var(--accent);
+    color: #fff;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    padding: 1px 7px;
+    margin-left: 6px;
+  }
+  .ex-panel { display: none; }
+  .ex-panel.active { display: block; }
+
+  /* Cards */
+  .exchange-card-v2 {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    transition: border-color 0.2s;
+  }
+  .exchange-card-v2:hover { border-color: var(--accent); }
+  .exchange-card-v2.status-accepted { border-left: 4px solid #22c55e; }
+  .exchange-card-v2.status-rejected { border-left: 4px solid #ef4444; opacity: 0.7; }
+  .exchange-card-v2.status-pending  { border-left: 4px solid #f59e0b; }
+
+  .ex-left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+  }
+  .ex-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+  .ex-info strong {
+    font-size: 1rem;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .ex-info .ex-message {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin: 0 0 6px;
+  }
+  .ex-skills {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+  .ex-skill-tag {
+    font-size: 0.75rem;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--accent-soft, rgba(124,58,237,0.15));
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* Status badge */
+  .status-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .status-badge.pending  { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .status-badge.accepted { background: rgba(34,197,94,0.15);  color: #22c55e; }
+  .status-badge.rejected { background: rgba(239,68,68,0.15);  color: #ef4444; }
+
+  /* Actions */
+  .ex-actions-v2 {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+  .btn-accept {
+    background: #22c55e;
+    color: #fff;
+    border: none;
+    padding: 0.45rem 1.1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-accept:hover { opacity: 0.85; }
+  .btn-decline {
+    background: transparent;
+    color: #ef4444;
+    border: 1px solid #ef4444;
+    padding: 0.45rem 1.1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-decline:hover { background: rgba(239,68,68,0.1); }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--muted);
+  }
+  .empty-state i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+    opacity: 0.4;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+
+  <div class="ex-page-header">
+    <h1>Exchange Requests</h1>
+    <p>Manage your incoming and outgoing skill exchange requests.</p>
+  </div>
+
+  <!-- Tabs -->
+  <div class="ex-tabs">
+    <button class="ex-tab active" onclick="switchTab('received', this)">
+      Received
+      {% if received %}<span class="tab-count">{{ received|length }}</span>{% endif %}
+    </button>
+    <button class="ex-tab" onclick="switchTab('sent', this)">
+      Sent
+      {% if sent %}<span class="tab-count">{{ sent|length }}</span>{% endif %}
+    </button>
+  </div>
+
+  <!-- Received Panel -->
+  <div id="panel-received" class="ex-panel active">
+    {% if received %}
+      {% for r in received %}
+      <div class="exchange-card-v2 status-{{ r.status }}">
+        <div class="ex-left">
+          <img class="ex-avatar"
+               src="{{ url_for('static', filename='avatars/' ~ (r.sender.avatar or 'default.png')) }}"
+               alt="{{ r.sender.name }}"/>
+          <div class="ex-info">
+            <strong>{{ r.sender.name }}</strong>
+            <p class="ex-message">{{ r.message or 'No message.' }}</p>
+            <div class="ex-skills">
+              {% if r.skill_offered %}<span class="ex-skill-tag">Offers: {{ r.skill_offered.title }}</span>{% endif %}
+              {% if r.skill_wanted %}<span class="ex-skill-tag">Wants: {{ r.skill_wanted.title }}</span>{% endif %}
+              <span class="status-badge {{ r.status }}">{{ r.status }}</span>
+            </div>
+          </div>
+        </div>
+        {% if r.status == 'pending' %}
+        <div class="ex-actions-v2">
+          <form method="POST" action="{{ url_for('exchange.respond', req_id=r.id, action='accept') }}">
+            <button class="btn-accept">✓ Accept</button>
+          </form>
+          <form method="POST" action="{{ url_for('exchange.respond', req_id=r.id, action='reject') }}">
+            <button class="btn-decline">✕ Decline</button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <p>No received requests yet.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Sent Panel -->
+  <div id="panel-sent" class="ex-panel">
+    {% if sent %}
+      {% for r in sent %}
+      <div class="exchange-card-v2 status-{{ r.status }}">
+        <div class="ex-left">
+          <img class="ex-avatar"
+               src="{{ url_for('static', filename='avatars/' ~ (r.receiver.avatar or 'default.png')) }}"
+               alt="{{ r.receiver.name }}"/>
+          <div class="ex-info">
+            <strong>{{ r.receiver.name }}</strong>
+            <p class="ex-message">{{ r.message or 'No message.' }}</p>
+            <div class="ex-skills">
+              {% if r.skill_offered %}<span class="ex-skill-tag">Offers: {{ r.skill_offered.title }}</span>{% endif %}
+              {% if r.skill_wanted %}<span class="ex-skill-tag">Wants: {{ r.skill_wanted.title }}</span>{% endif %}
+              <span class="status-badge {{ r.status }}">{{ r.status }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <i class="fas fa-paper-plane"></i>
+        <p>No sent requests yet.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  function switchTab(name, el) {
+    document.querySelectorAll('.ex-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.ex-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('panel-' + name).classList.add('active');
+    el.classList.add('active');
+  }
+</script>
+{% endblock %}

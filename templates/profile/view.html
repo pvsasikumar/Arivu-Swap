@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}{{ user.name }} — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="profile-hero">
+    <img src="{{ url_for('static', filename='avatars/' ~ user.avatar) }}" class="profile-avatar" alt="{{ user.name }}"/>
+    <div class="profile-info">
+      <h1>{{ user.name }}</h1>
+      {% if avg_rating %}<div class="rating-stars">★ {{ avg_rating }} <span>({{ reviews|length }} reviews)</span></div>{% endif %}
+      <p>{{ user.bio or 'No bio yet.' }}</p>
+      {% if current_user.is_authenticated and current_user.id == user.id %}
+      <a href="{{ url_for('profile.edit') }}" class="btn-ghost">Edit Profile</a>
+      {% elif current_user.is_authenticated %}
+      <div class="action-row">
+        <a href="{{ url_for('chat.conversation', user_id=user.id) }}" class="btn-primary">Message</a>
+        <a href="{{ url_for('meeting.schedule', user_id=user.id) }}" class="btn-ghost">Schedule</a>
+        <a href="{{ url_for('review.leave_review', user_id=user.id) }}" class="btn-ghost">Leave Review</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <h2 class="section-title">Skills</h2>
+  {% if skills %}
+  <div class="skills-grid">
+    {% for skill in skills %}
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <span class="skill-cat">{{ skill.category }}</span>
+        <span class="skill-level level-{{ skill.level }}">{{ skill.level }}</span>
+      </div>
+      <h3>{{ skill.title }}</h3>
+      <p>{{ skill.description[:100] }}…</p>
+      <a href="{{ url_for('skills.detail', skill_id=skill.id) }}" class="btn-sm">View</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}<p class="muted">No skills listed yet.</p>{% endif %}
+
+  <h2 class="section-title">Reviews</h2>
+  {% if reviews %}
+  <div class="reviews-list">
+    {% for r in reviews %}
+    <div class="review-card">
+      <div class="review-header">
+        <img src="{{ url_for('static', filename='avatars/' ~ (r.reviewer.avatar if r.reviewer and r.reviewer.avatar else 'default.png')) }}" alt=""/>
+        <strong>{{ r.reviewer.name if r.reviewer else 'User' }}</strong>
+        <span class="review-stars">{{ '★' * r.rating }}{{ '☆' * (5 - r.rating) }}</span>
+      </div>
+      <p>{{ r.comment }}</p>
+      <small>{{ r.created_at.strftime('%d %b %Y') }}</small>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}<p class="muted">No reviews yet.</p>{% endif %}
+</div>
+{% endblock %}

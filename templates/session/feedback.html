@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Leave Feedback{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <h1>Feedback for "{{ s.title }}"</h1>
+  <form method="POST" style="margin-top:24px; display:flex; flex-direction:column; gap:16px;">
+    <div>
+      <label>Rating</label>
+      <select name="rating" required>
+        <option value="5">★★★★★ Excellent</option>
+        <option value="4">★★★★☆ Good</option>
+        <option value="3">★★★☆☆ Average</option>
+        <option value="2">★★☆☆☆ Poor</option>
+        <option value="1">★☆☆☆☆ Very Poor</option>
+      </select>
+    </div>
+    <div>
+      <label>Comment (optional)</label>
+      <textarea name="comment" rows="4" placeholder="How was the session?"></textarea>
+    </div>
+    <button type="submit" class="btn-primary">Submit Feedback</button>
+  </form>
+</div>
+{% endblock %}

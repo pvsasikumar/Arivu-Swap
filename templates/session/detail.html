@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}Session — {{ s.title }}{% endblock %}
+{% block extra_css %}
+<style>
+.detail-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:28px; max-width:600px; margin:24px auto; }
+.detail-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border); font-size:14px; }
+.detail-row:last-child { border-bottom:none; }
+.detail-label { color:var(--muted); }
+.action-bar { display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; }
+.status-badge { display:inline-block; font-size:12px; padding:4px 12px; border-radius:50px; font-weight:500; }
+.status-pending   { background:rgba(255,180,0,0.15);   color:#ffb400; }
+.status-accepted  { background:rgba(30,200,120,0.15);  color:#1ec878; }
+.status-completed { background:rgba(108,71,255,0.15);  color:var(--accent); }
+.status-cancelled { background:rgba(255,80,80,0.15);   color:#ff5050; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="detail-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+      <h2 style="margin:0;">{{ s.title }}</h2>
+      <span class="status-badge status-{{ s.status }}">{{ s.status }}</span>
+    </div>
+
+    <div class="detail-row"><span class="detail-label">Booker</span><span>{{ s.booker.name }}</span></div>
+    <div class="detail-row"><span class="detail-label">Host</span><span>{{ s.host.name }}</span></div>
+    <div class="detail-row"><span class="detail-label">Date & Time</span><span>{{ s.scheduled_at.strftime('%d %b %Y, %H:%M') }}</span></div>
+    <div class="detail-row"><span class="detail-label">Duration</span><span>{{ s.duration_minutes }} minutes</span></div>
+    {% if s.skill %}<div class="detail-row"><span class="detail-label">Skill</span><span>{{ s.skill.title }}</span></div>{% endif %}
+    {% if s.goals %}<div class="detail-row"><span class="detail-label">Goals</span><span>{{ s.goals }}</span></div>{% endif %}
+    {% if s.meet_link %}<div class="detail-row"><span class="detail-label">Meet Link</span><a href="{{ s.meet_link }}" target="_blank">Join</a></div>{% endif %}
+    {% if s.notes %}<div class="detail-row"><span class="detail-label">Notes</span><span>{{ s.notes }}</span></div>{% endif %}
+
+    <div class="action-bar">
+      {% if s.status == 'pending' and s.host_id == current_user.id %}
+        <form method="POST" action="{{ url_for('session.accept', session_id=s.id) }}">
+          <button class="btn-primary">Accept</button>
+        </form>
+      {% endif %}
+
+      {% if s.status == 'accepted' and s.host_id == current_user.id %}
+        <form method="POST" action="{{ url_for('session.complete', session_id=s.id) }}">
+          <button class="btn-primary">Mark Complete</button>
+        </form>
+      {% endif %}
+
+      {% if s.status in ['pending','accepted'] %}
+        <form method="POST" action="{{ url_for('session.cancel', session_id=s.id) }}">
+          <button class="btn-ghost" style="color:#ff5050;">Cancel</button>
+        </form>
+      {% endif %}
+
+      {% if s.status == 'completed' and not already_reviewed %}
+        <a href="{{ url_for('session.feedback', session_id=s.id) }}" class="btn-primary">Leave Feedback</a>
+      {% endif %}
+
+      {% if s.meet_link and s.status == 'accepted' %}
+        <a href="{{ s.meet_link }}" target="_blank" class="btn-ghost">Join Meeting</a>
+      {% endif %}
+    </div>
+
+    {% if s.feedbacks %}
+    <div style="margin-top:24px; border-top:1px solid var(--border); padding-top:16px;">
+      <div style="font-size:13px; font-weight:600; margin-bottom:10px;">Feedback</div>
+      {% for fb in s.feedbacks %}
+      <div style="font-size:13px; margin-bottom:8px;">
+        <strong>{{ fb.reviewer.name }}</strong> rated {{ fb.reviewee.name }}
+        <span style="color:#ffb400;">{{ '★' * fb.rating }}{{ '☆' * (5 - fb.rating) }}</span>
+        {% if fb.comment %}<div style="color:var(--muted); margin-top:2px;">{{ fb.comment }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

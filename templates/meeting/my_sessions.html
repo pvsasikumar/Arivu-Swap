@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}My Sessions — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container">
+  <h1>My Sessions</h1>
+  {% if meetings %}
+  <div class="exchange-list">
+    {% for m in meetings %}
+    <a href="{{ url_for('meeting.detail', meeting_id=m.id) }}" class="exchange-card" style="text-decoration:none">
+      <div class="ex-meta">
+        <div class="meeting-icon"><i class="fas fa-video"></i></div>
+        <div>
+          <strong>{{ m.title }}</strong>
+          <p>{{ m.scheduled_at.strftime('%d %b %Y, %H:%M') }} · {{ m.duration_minutes }}min</p>
+          <span class="ex-status">{{ m.status }}</span>
+        </div>
+      </div>
+      {% if m.meet_link %}
+      <a href="{{ m.meet_link }}" target="_blank" class="btn-sm" onclick="event.stopPropagation()">Join</a>
+      {% endif %}
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-calendar-times"></i>
+    <p>No sessions yet. Schedule one from any skill page!</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

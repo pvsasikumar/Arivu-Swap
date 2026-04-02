@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Browse Skills — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div class="page-header">
+    <h1>Browse Skills</h1>
+  </div>
+  <form class="search-bar" method="GET">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search skills…"/>
+    <select name="category">
+      <option value="">All Categories</option>
+      {% for c in ['Programming','Design','Music','Languages','Fitness','Cooking','Business','Photography','Other'] %}
+      <option value="{{ c }}" {% if cat==c %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="btn-primary">Search</button>
+  </form>
+
+  {% if skills %}
+  <div class="skills-grid">
+    {% for skill in skills %}
+    <div class="skill-card">
+      <div class="skill-card-top">
+        <span class="skill-cat">{{ skill.category }}</span>
+        <span class="skill-level level-{{ skill.level }}">{{ skill.level }}</span>
+      </div>
+      <h3>{{ skill.title }}</h3>
+      <p>{{ skill.description[:120] }}{% if skill.description|length > 120 %}…{% endif %}</p>
+      <div class="skill-wants"><i class="fas fa-exchange-alt"></i> Wants: {{ skill.wants }}</div>
+      <div class="skill-owner">
+        <img src="{{ url_for('static', filename='avatars/' ~ (skill.owner.avatar or 'default.png')) }}"
+     alt="{{ skill.owner.name }}"onerror="this.onerror=null; this.src='{{ url_for('static', filename='avatars/default.png') }}'"/>
+        <a href="{{ url_for('profile.view', user_id=skill.owner.id) }}">{{ skill.owner.name }}</a>
+      </div>
+      <a href="{{ url_for('skills.detail', skill_id=skill.id) }}" class="btn-primary btn-full">View &amp; Exchange</a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-search"></i>
+    <p>No skills found. Try a different search.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

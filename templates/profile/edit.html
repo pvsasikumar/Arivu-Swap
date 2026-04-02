@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile – SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <h1>Edit Profile</h1>
+
+  <form method="POST" enctype="multipart/form-data" class="form-card">
+
+    <!-- Avatar preview + upload -->
+    <div class="field-group" style="align-items:center; display:flex; gap:1.5rem;">
+      <img id="avatar-preview"
+           src="{{ url_for('static', filename='avatars/' ~ current_user.avatar) }}"
+           style="width:80px; height:80px; border-radius:50%; object-fit:cover; border:2px solid #ddd;">
+      <div>
+        <label>Profile Photo</label>
+        <input type="file" name="avatar" id="avatar-input" accept="image/*">
+        <small style="display:block; color:#888; margin-top:4px;">JPG, PNG or WEBP · max 2MB</small>
+      </div>
+    </div>
+
+    <!-- Full Name -->
+    <div class="field-group">
+      <label>Full Name</label>
+      <input type="text" name="name" value="{{ current_user.name }}" required>
+    </div>
+
+    <!-- Bio -->
+    <div class="field-group">
+      <label>Bio</label>
+      <textarea name="bio" rows="4" placeholder="Tell others about yourself">{{ current_user.bio or '' }}</textarea>
+    </div>
+
+    <button type="submit" class="btn-primary btn-full">Save Changes</button>
+  </form>
+</div>
+
+<script>
+  document.getElementById('avatar-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      alert('File is too large. Please choose an image under 2MB.');
+      this.value = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => document.getElementById('avatar-preview').src = e.target.result;
+    reader.readAsDataURL(file);
+  });
+</script>
+{% endblock %}

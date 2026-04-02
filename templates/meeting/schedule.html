@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Schedule Meeting — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <h1>Schedule a Meeting</h1>
+  <p>With <strong>{{ participant.name }}</strong></p>
+  <form method="POST" class="form-card">
+    <div class="field-group">
+      <label>Meeting Title</label>
+      <input type="text" name="title" placeholder="e.g. Python Session #1" required/>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label>Date &amp; Time</label>
+        <input type="datetime-local" name="scheduled_at" required/>
+      </div>
+      <div class="field-group">
+        <label>Duration (minutes)</label>
+        <input type="number" name="duration" value="60" min="15" max="240"/>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>Google Meet / Zoom Link</label>
+      <input type="url" name="meet_link" placeholder="https://meet.google.com/..."/>
+    </div>
+    <div class="field-group">
+      <label>Notes</label>
+      <textarea name="notes" rows="3" placeholder="Topics to cover, preparation notes…"></textarea>
+    </div>
+    <button type="submit" class="btn-primary btn-full">Schedule Meeting</button>
+  </form>
+</div>
+{% endblock %}

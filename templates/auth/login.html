@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Login — SkillSwap{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h2>Welcome back</h2>
+      <p>Login to continue swapping skills</p>
+    </div>
+    <form method="POST" class="auth-form">
+      <div class="field-group">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="you@example.com" required/>
+      </div>
+      <div class="field-group">
+        <label>Password</label>
+        <input type="password" name="password" placeholder="••••••••" required/>
+      </div>
+      <a href="{{ url_for('auth.forgot_password') }}" class="forgot-link">Forgot password?</a>
+      <button type="submit" class="btn-primary btn-full">Login</button>
+    </form>
+    <p class="auth-switch">Don't have an account? <a href="{{ url_for('auth.register') }}">Sign up</a></p>
+  </div>
+</div>
+{% endblock %}

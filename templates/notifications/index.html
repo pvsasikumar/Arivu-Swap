@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <h1>Notifications</h1>
+  {% if notifs %}
+  <div class="notif-list">
+    {% for n in notifs %}
+    <a href="{{ n.link }}" class="notif-row {% if not n.is_read %}unread{% endif %}">
+      <div class="notif-dot"></div>
+      <div class="notif-body">
+        <p>{{ n.message }}</p>
+        <small>{{ n.created_at.strftime('%d %b %Y, %H:%M') }}</small>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-bell-slash"></i>
+    <p>No notifications yet. Start exchanging skills!</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Meeting Detail — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <div class="form-card">
+    <h1>{{ meeting.title }}</h1>
+    <div class="meeting-meta">
+      <div class="meta-row"><i class="fas fa-calendar"></i> {{ meeting.scheduled_at.strftime('%d %b %Y, %H:%M') }}</div>
+      <div class="meta-row"><i class="fas fa-clock"></i> {{ meeting.duration_minutes }} minutes</div>
+      <div class="meta-row"><i class="fas fa-circle"></i> {{ meeting.status }}</div>
+      {% if meeting.meet_link %}
+      <div class="meta-row"><a href="{{ meeting.meet_link }}" target="_blank" class="btn-primary"><i class="fas fa-video"></i> Join Meeting</a></div>
+      {% endif %}
+    </div>
+    {% if meeting.notes %}
+    <div class="field-group">
+      <label>Notes</label>
+      <p>{{ meeting.notes }}</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}My Matches — SkillSwap{% endblock %}
+{% block extra_css %}
+<style>
+.matches-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:20px; margin-top:24px; }
+.match-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; }
+.match-header { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.match-avatar { width:48px; height:48px; border-radius:50%; object-fit:cover; }
+.match-avatar-fallback { width:48px; height:48px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:16px; }
+.score-ring { margin-left:auto; text-align:center; }
+.score-value { font-size:22px; font-weight:700; color:var(--accent); }
+.score-label { font-size:11px; color:var(--muted); }
+.skill-tags { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.tag { font-size:12px; padding:3px 10px; border-radius:50px; }
+.tag.have { background:rgba(108,71,255,0.15); color:var(--accent); }
+.tag.want { background:rgba(30,200,120,0.15); color:#1ec878; }
+.tag.matched { background:rgba(255,180,0,0.15); color:#ffb400; }
+.section-label { font-size:11px; color:var(--muted); margin:10px 0 4px; text-transform:uppercase; letter-spacing:.05em; }
+.match-actions { display:flex; gap:8px; margin-top:16px; }
+.empty-matches { text-align:center; padding:60px 20px; color:var(--muted); }
+.empty-matches i { font-size:48px; margin-bottom:16px; display:block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <h1>Smart Matches</h1>
+  <p style="color:var(--muted); margin-top:4px;">People whose skills align with yours</p>
+
+  {% if matches %}
+  <div class="matches-grid">
+    {% for m in matches %}
+    {% set u = m.user %}
+    {% set initials = (u.name.split()[0][0] + u.name.split()[-1][0]) | upper %}
+    {% set colors = ['#7F77DD','#1D9E75','#D85A30','#D4537E','#378ADD'] %}
+    {% set color = colors[loop.index0 % colors|length] %}
+
+    <div class="match-card">
+      <div class="match-header">
+        <img src="{{ url_for('static', filename='avatars/' ~ (u.avatar or 'default.png')) }}"
+             class="match-avatar"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+             alt="{{ initials }}"/>
+        <div class="match-avatar-fallback" style="display:none; background:{{ color }}22; color:{{ color }};">
+          {{ initials }}
+        </div>
+        <div>
+          <strong>{{ u.name }}</strong>
+          <div style="font-size:13px; color:var(--muted);">{{ u.bio[:60] ~ '…' if u.bio and u.bio|length > 60 else (u.bio or 'No bio') }}</div>
+        </div>
+        <div class="score-ring">
+          <div class="score-value">{{ m.score }}%</div>
+          <div class="score-label">match</div>
+        </div>
+      </div>
+
+      {% if m.matched_skills %}
+      <div class="section-label">You can offer them</div>
+      <div class="skill-tags">
+        {% for s in m.matched_skills %}
+        <span class="tag matched">{{ s.title }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if m.their_skills %}
+      <div class="section-label">They offer</div>
+      <div class="skill-tags">
+        {% for s in m.their_skills[:4] %}
+        <span class="tag have">{{ s.title }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if m.their_desires %}
+      <div class="section-label">They want to learn</div>
+      <div class="skill-tags">
+        {% for d in m.their_desires[:3] %}
+        <span class="tag want">{{ d.title }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="match-actions">
+  <a href="{{ url_for('chat.conversation', user_id=u.id) }}" class="btn-primary" style="flex:1; text-align:center;">Message</a>
+  <a href="{{ url_for('session.book', host_id=u.id) }}" class="btn-ghost" style="flex:1; text-align:center;">Book Session</a>
+  <a href="{{ url_for('profile.view', user_id=u.id) }}" class="btn-ghost" style="flex:1; text-align:center;">Profile</a>
+</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-matches">
+    <i class="fas fa-user-slash"></i>
+    <p>No matches found yet.</p>
+    <p style="font-size:14px;">Add more skills and desired skills to improve your matches.</p>
+    <a href="{{ url_for('skills.add') }}" class="btn-primary">Add Skills</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

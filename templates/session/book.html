@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Book a Session{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <h1>Book a Session with {{ host.name }}</h1>
+  <form method="POST" style="margin-top:24px; display:flex; flex-direction:column; gap:16px;">
+    <div>
+      <label>Session Title</label>
+      <input type="text" name="title" required placeholder="e.g. Python basics walkthrough"/>
+    </div>
+    <div>
+      <label>Skill Focus</label>
+      <select name="skill_id">
+        <option value="">— General session —</option>
+        {% for sk in host_skills %}
+        <option value="{{ sk.id }}">{{ sk.title }} ({{ sk.level }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label>Date & Time</label>
+      <input type="datetime-local" name="scheduled_at" required/>
+    </div>
+    <div>
+      <label>Duration (minutes)</label>
+      <select name="duration">
+        <option value="30">30 min</option>
+        <option value="60" selected>1 hour</option>
+        <option value="90">1.5 hours</option>
+        <option value="120">2 hours</option>
+      </select>
+    </div>
+    <div>
+      <label>Session Goals</label>
+      <textarea name="goals" rows="3" placeholder="What do you want to achieve in this session?"></textarea>
+    </div>
+    <div>
+      <label>Meet Link (optional)</label>
+      <input type="url" name="meet_link" placeholder="https://meet.google.com/..."/>
+    </div>
+    <div>
+      <label>Notes (optional)</label>
+      <textarea name="notes" rows="2"></textarea>
+    </div>
+    <button type="submit" class="btn-primary">Send Booking Request</button>
+  </form>
+</div>
+{% endblock %}

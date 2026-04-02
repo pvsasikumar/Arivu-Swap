@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Verify OTP — SkillSwap{% endblock %}
+{% block content %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="otp-icon">📬</div>
+      <h2>Check your email</h2>
+      <p>We sent a 6-digit code to <strong>{{ email }}</strong></p>
+    </div>
+    <form method="POST" class="auth-form">
+      <input type="hidden" name="email" value="{{ email }}"/>
+      <div class="field-group">
+        <label>OTP Code</label>
+        <input type="text" name="otp" placeholder="000000" maxlength="6" class="otp-input" required/>
+      </div>
+      <button type="submit" class="btn-primary btn-full">Verify</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

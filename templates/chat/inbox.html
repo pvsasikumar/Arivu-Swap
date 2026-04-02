@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Inbox — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <h1>Messages</h1>
+  {% if inbox %}
+  <div class="inbox-list">
+    {% set colors = ['#7F77DD','#1D9E75','#D85A30','#D4537E','#378ADD'] %}
+    {% for item in inbox %}
+    {% set p = item.other_user %}
+    {% set initials = (p.name.split()[0][0] + p.name.split()[-1][0]) | upper %}
+    {% set color = colors[loop.index0 % colors | length] %}
+    <a href="{{ url_for('chat.conversation', user_id=p.id) }}" class="inbox-row">
+      <div class="inbox-avatar-wrap">
+        <img
+          src="{{ url_for('static', filename='img/' ~ (p.avatar or 'default.png')) }}"
+          class="inbox-avatar-img"
+          alt="{{ initials }}"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+        />
+        <div class="inbox-avatar-fallback" style="background:{{ color }}22; color:{{ color }};">
+          {{ initials }}
+        </div>
+      </div>
+      <div class="inbox-info">
+        <div class="inbox-header">
+          <strong>{{ p.name }}</strong>
+          <span class="inbox-time">
+            {% if item.timestamp %}
+              {{ item.timestamp | timeago }}
+            {% endif %}
+          </span>
+        </div>
+        <span class="inbox-preview">{{ item.last_message }}</span>
+      </div>
+      <i class="fas fa-chevron-right"></i>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="fas fa-comments"></i>
+    <p>No messages yet. Start a conversation from someone's skill page!</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

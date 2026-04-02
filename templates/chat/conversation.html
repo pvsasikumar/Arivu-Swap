@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+{% block title %}Chat with {{ other.name }} — SkillSwap{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-wrap { display:flex; flex-direction:column; height:calc(100vh - 140px); }
+
+.chat-header {
+  padding:14px 20px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:12px;
+}
+.chat-header-avatar {
+  width:38px; height:38px; border-radius:50%; object-fit:cover;
+}
+.chat-header-fallback {
+  width:38px; height:38px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:600;
+}
+.online-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:#1ec878; margin-left:4px;
+}
+.typing-indicator {
+  font-size:12px; color:var(--muted); margin-left:8px;
+  display:none;
+}
+
+.chat-messages {
+  flex:1; overflow-y:auto; padding:20px;
+  display:flex; flex-direction:column; gap:8px;
+}
+
+.msg-row { display:flex; align-items:flex-end; gap:8px; }
+.msg-row.mine { flex-direction:row-reverse; }
+
+.msg-bubble {
+  max-width:65%; padding:10px 14px;
+  border-radius:18px; font-size:14px; line-height:1.5;
+  position:relative;
+}
+.msg-bubble.mine {
+  background:var(--accent); color:#fff;
+  border-bottom-right-radius:4px;
+}
+.msg-bubble.theirs {
+  background:var(--surface); color:var(--text);
+  border-bottom-left-radius:4px;
+}
+.msg-time {
+  font-size:11px; opacity:0.6; margin-top:4px;
+  display:flex; align-items:center; gap:4px;
+}
+
+/* Code block */
+.msg-code {
+  background:#1a1a2e; color:#e2e2e2;
+  border-radius:10px; padding:12px 14px;
+  font-family:monospace; font-size:13px;
+  white-space:pre-wrap; word-break:break-all;
+  max-width:75%;
+}
+.code-lang-badge {
+  font-size:10px; background:rgba(255,255,255,0.1);
+  padding:2px 8px; border-radius:4px;
+  margin-bottom:6px; display:inline-block;
+}
+
+/* File message */
+.msg-file {
+  display:flex; align-items:center; gap:10px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:10px 14px;
+  text-decoration:none; color:var(--text);
+  max-width:280px;
+}
+.msg-file:hover { background:var(--border); }
+.msg-file-icon { font-size:24px; }
+.msg-file-info { flex:1; min-width:0; }
+.msg-file-name { font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.msg-file-size { font-size:11px; color:var(--muted); }
+
+/* Image message */
+.msg-image { max-width:260px; border-radius:12px; cursor:pointer; }
+
+/* Input area */
+.chat-input-wrap {
+  border-top:1px solid var(--border); padding:12px 16px;
+}
+.chat-toolbar {
+  display:flex; gap:8px; margin-bottom:8px; align-items:center;
+}
+.toolbar-btn {
+  background:none; border:1px solid var(--border);
+  border-radius:8px; padding:5px 10px; cursor:pointer;
+  font-size:12px; color:var(--muted);
+  transition:all 0.15s;
+}
+.toolbar-btn:hover, .toolbar-btn.active {
+  background:var(--accent); color:#fff; border-color:var(--accent);
+}
+.chat-input-row {
+  display:flex; gap:10px; align-items:flex-end;
+}
+#msgInput {
+  flex:1; padding:10px 16px; border-radius:24px;
+  border:1px solid var(--border); background:var(--surface);
+  font-size:14px; resize:none; max-height:120px; overflow-y:auto;
+  line-height:1.5;
+}
+#codeInput {
+  flex:1; padding:10px 16px; border-radius:12px;
+  border:1px solid var(--border); background:#1a1a2e;
+  font-size:13px; font-family:monospace; resize:none;
+  height:100px; color:#e2e2e2; display:none;
+}
+.send-btn {
+  width:42px; height:42px; border-radius:50%;
+  background:var(--accent); border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:16px; flex-shrink:0;
+}
+.send-btn:hover { opacity:0.85; }
+#fileInput { display:none; }
+.upload-progress {
+  font-size:12px; color:var(--muted);
+  display:none; margin-top:6px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="chat-wrap">
+
+  <!-- Header -->
+  <div class="chat-header">
+    {% set initials = (other.name.split()[0][0] + other.name.split()[-1][0]) | upper %}
+    <img src="{{ url_for('static', filename='avatars/' ~ (other.avatar or 'default.png')) }}"
+         class="chat-header-avatar"
+         onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
+         alt="{{ initials }}"/>
+    <div class="chat-header-fallback" style="display:none; background:#7F77DD22; color:#7F77DD;">
+      {{ initials }}
+    </div>
+    <div>
+      <strong>{{ other.name }}</strong>
+      <span class="typing-indicator" id="typingIndicator">typing…</span>
+    </div>
+    <div style="margin-left:auto; display:flex; gap:8px;">
+      <a href="{{ url_for('session.book', host_id=other.id) }}" class="btn-sm">Book Session</a>
+      <a href="{{ url_for('profile.view', user_id=other.id) }}" class="btn-sm">Profile</a>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div class="chat-messages" id="messages">
+    {% for m in messages %}
+    {% set is_mine = m.sender_id == current_user.id %}
+
+    {% if m.msg_type == 'code' %}
+    <div class="msg-code {% if is_mine %}mine{% else %}theirs{% endif %}" style="align-self:{% if is_mine %}flex-end{% else %}flex-start{% endif %};">
+      {% if m.code_lang %}<div class="code-lang-badge">{{ m.code_lang }}</div>{% endif %}
+      {{ m.content }}
+      <div class="msg-time" data-time="{{ m.created_at.isoformat() }}"></div>
+    </div>
+
+    {% elif m.msg_type == 'image' %}
+    <div class="msg-row {% if is_mine %}mine{% else %}theirs{% endif %}">
+      <div>
+        <a href="{{ m.file_url }}" target="_blank">
+          <img src="{{ m.file_url }}" class="msg-image" alt="{{ m.file_name }}"/>
+        </a>
+        <div class="msg-time" data-time="{{ m.created_at.isoformat() }}" style="{% if is_mine %}text-align:right{% endif %}"></div>
+      </div>
+    </div>
+
+    {% elif m.msg_type == 'file' %}
+    <div class="msg-row {% if is_mine %}mine{% else %}theirs{% endif %}">
+      <a href="{{ m.file_url }}" target="_blank" class="msg-file" download>
+        <span class="msg-file-icon">📎</span>
+        <div class="msg-file-info">
+          <div class="msg-file-name">{{ m.file_name }}</div>
+          <div class="msg-file-size">{{ (m.file_size / 1024) | round(1) }} KB</div>
+        </div>
+      </a>
+    </div>
+
+    {% else %}
+    <div class="msg-row {% if is_mine %}mine{% else %}theirs{% endif %}">
+      <div class="msg-bubble {% if is_mine %}mine{% else %}theirs{% endif %}">
+        {{ m.content }}
+        <div class="msg-time" data-time="{{ m.created_at.isoformat() }}"></div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% endfor %}
+  </div>
+
+  <!-- Input -->
+  <div class="chat-input-wrap">
+    <div class="chat-toolbar">
+      <button class="toolbar-btn" id="btnText" onclick="setMode('text')">💬 Text</button>
+      <button class="toolbar-btn" id="btnCode" onclick="setMode('code')">👨‍💻 Code</button>
+      <button class="toolbar-btn" onclick="document.getElementById('fileInput').click()">📎 File</button>
+      <select id="codeLang" style="display:none; font-size:12px; padding:4px 8px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text);">
+        <option value="python">Python</option>
+        <option value="javascript">JavaScript</option>
+        <option value="html">HTML</option>
+        <option value="css">CSS</option>
+        <option value="sql">SQL</option>
+        <option value="bash">Bash</option>
+        <option value="other">Other</option>
+      </select>
+      <input type="file" id="fileInput" accept=".pdf,.png,.jpg,.jpeg,.gif,.txt,.py,.js,.html,.css,.zip,.docx,.md"/>
+    </div>
+    <div class="chat-input-row">
+      <textarea id="msgInput" placeholder="Type a message…" rows="1"></textarea>
+      <textarea id="codeInput" placeholder="Paste your code here…"></textarea>
+      <button class="send-btn" id="sendBtn">➤</button>
+    </div>
+    <div class="upload-progress" id="uploadProgress">Uploading…</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const socket = io();
+  const myId = {{ current_user.id }};
+  const otherId = {{ other.id }};
+  const room = `chat_${Math.min(myId, otherId)}_${Math.max(myId, otherId)}`;
+
+  socket.emit('join', { user_id: myId, other_id: otherId });
+
+  let mode = 'text';
+  let typingTimer;
+
+  // ── Mode switching ──────────────────────────────────────────────────
+  window.setMode = function(m) {
+    mode = m;
+    document.getElementById('msgInput').style.display  = m === 'text' ? 'block' : 'none';
+    document.getElementById('codeInput').style.display = m === 'code' ? 'block' : 'none';
+    document.getElementById('codeLang').style.display  = m === 'code' ? 'block' : 'none';
+    document.getElementById('btnText').classList.toggle('active', m === 'text');
+    document.getElementById('btnCode').classList.toggle('active', m === 'code');
+  };
+  setMode('text');
+
+  // ── Send message ────────────────────────────────────────────────────
+  document.getElementById('sendBtn').addEventListener('click', sendMsg);
+  document.getElementById('msgInput').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
+  });
+
+  function sendMsg() {
+    const isCode = mode === 'code';
+    const input  = document.getElementById(isCode ? 'codeInput' : 'msgInput');
+    const content = input.value.trim();
+    if (!content) return;
+
+    socket.emit('send_message', {
+      sender_id:   myId,
+      receiver_id: otherId,
+      content:     content,
+      msg_type:    isCode ? 'code' : 'text',
+      code_lang:   isCode ? document.getElementById('codeLang').value : '',
+    });
+    input.value = '';
+    socket.emit('stop_typing', { user_id: myId, other_id: otherId });
+  }
+
+  // ── Receive message ─────────────────────────────────────────────────
+  socket.on('receive_message', data => {
+    appendMessage(data);
+    document.getElementById('typingIndicator').style.display = 'none';
+  });
+
+  function appendMessage(data) {
+    const messages = document.getElementById('messages');
+    const isMine   = data.sender_id === myId;
+    let html = '';
+
+    if (data.msg_type === 'code') {
+      html = `
+        <div class="msg-code" style="align-self:${isMine ? 'flex-end' : 'flex-start'};">
+          ${data.code_lang ? `<div class="code-lang-badge">${data.code_lang}</div>` : ''}
+          ${escapeHtml(data.content)}
+          <div class="msg-time">${formatTime(data.timestamp)}</div>
+        </div>`;
+    } else if (data.msg_type === 'image') {
+      html = `
+        <div class="msg-row ${isMine ? 'mine' : 'theirs'}">
+          <a href="${data.file_url}" target="_blank">
+            <img src="${data.file_url}" class="msg-image" alt="${data.file_name}"/>
+          </a>
+        </div>`;
+    } else if (data.msg_type === 'file') {
+      const kb = (data.file_size / 1024).toFixed(1);
+      html = `
+        <div class="msg-row ${isMine ? 'mine' : 'theirs'}">
+          <a href="${data.file_url}" target="_blank" class="msg-file" download>
+            <span class="msg-file-icon">📎</span>
+            <div class="msg-file-info">
+              <div class="msg-file-name">${data.file_name}</div>
+              <div class="msg-file-size">${kb} KB</div>
+            </div>
+          </a>
+        </div>`;
+    } else {
+      html = `
+        <div class="msg-row ${isMine ? 'mine' : 'theirs'}">
+          <div class="msg-bubble ${isMine ? 'mine' : 'theirs'}">
+            ${escapeHtml(data.content)}
+            <div class="msg-time">${formatTime(data.timestamp)}</div>
+          </div>
+        </div>`;
+    }
+
+    messages.insertAdjacentHTML('beforeend', html);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  // ── File upload ─────────────────────────────────────────────────────
+  document.getElementById('fileInput').addEventListener('change', async function () {
+    const file = this.files[0];
+    if (!file) return;
+
+    const progress = document.getElementById('uploadProgress');
+    progress.style.display = 'block';
+    progress.textContent   = 'Uploading…';
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('receiver_id', otherId);
+
+    try {
+      const res  = await fetch('/chat/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.error) {
+        progress.textContent = '❌ ' + data.error;
+      } else {
+        progress.style.display = 'none';
+      }
+    } catch (err) {
+      progress.textContent = '❌ Upload failed';
+    }
+    this.value = '';
+  });
+
+  // ── Typing indicators ───────────────────────────────────────────────
+  document.getElementById('msgInput').addEventListener('input', () => {
+    socket.emit('typing', { user_id: myId, other_id: otherId });
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(() => {
+      socket.emit('stop_typing', { user_id: myId, other_id: otherId });
+    }, 1500);
+  });
+
+  socket.on('user_typing', () => {
+    document.getElementById('typingIndicator').style.display = 'inline';
+  });
+  socket.on('user_stop_typing', () => {
+    document.getElementById('typingIndicator').style.display = 'none';
+  });
+
+  // ── Helpers ─────────────────────────────────────────────────────────
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+document.querySelectorAll(".msg-time").forEach(el => {
+  const t = el.getAttribute("data-time");
+  if (t) el.innerText = formatTime(t);
+});
+
+  // Scroll to bottom on load
+  const msgs = document.getElementById('messages');
+  msgs.scrollTop = msgs.scrollHeight;
+});
+</script>
+{% endblock %}

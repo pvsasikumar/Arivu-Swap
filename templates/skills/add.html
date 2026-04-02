@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Add Skill — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <div class="page-header">
+    <h1>Add a Skill</h1>
+    <p>Tell others what you can teach</p>
+  </div>
+  <form method="POST" class="form-card">
+    <div class="field-group">
+      <label>Skill Title</label>
+      <input type="text" name="title" placeholder="e.g. Python Programming" required/>
+    </div>
+    <div class="field-group">
+      <label>Description</label>
+      <textarea name="description" rows="4" placeholder="Describe what you'll teach, your experience level, topics covered…" required></textarea>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <label>Category</label>
+        <select name="category" required>
+          <option value="">Select…</option>
+          {% for c in ['Programming','Design','Music','Languages','Fitness','Cooking','Business','Photography','Other'] %}
+          <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field-group">
+        <label>Your Level</label>
+        <select name="level" required>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate" selected>Intermediate</option>
+          <option value="expert">Expert</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-group">
+      <label>What do you want in exchange?</label>
+      <input type="text" name="wants" placeholder="e.g. Graphic Design, Spanish lessons, Guitar…" required/>
+    </div>
+    <button type="submit" class="btn-primary btn-full">List My Skill</button>
+  </form>
+</div>
+<form method="POST" action="{{ url_for('matching.add_desired') }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() if csrf_token is defined else '' }}"/>
+  <h3>Skills I Want to Learn</h3>
+  <input type="text" name="title" placeholder="e.g. UI Design" required/>
+  <select name="category">
+    <option value="tech">Tech</option>
+    <option value="design">Design</option>
+    <option value="business">Business</option>
+    <option value="language">Language</option>
+    <option value="other">Other</option>
+  </select>
+  <select name="level_wanted">
+    <option value="beginner">Beginner</option>
+    <option value="intermediate">Intermediate</option>
+    <option value="expert">Expert</option>
+  </select>
+  <button type="submit" class="btn-primary">Add Desired Skill</button>
+</form>
+{% endblock %}

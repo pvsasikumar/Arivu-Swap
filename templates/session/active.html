@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Active Session — SkillSwap{% endblock %}
+{% block content %}
+<div class="page-container narrow">
+  <div class="empty-state">
+    <i class="fas fa-satellite-dish"></i>
+    <h2>No Active Session</h2>
+    <p>Join a scheduled meeting from your sessions page.</p>
+    <a href="{{ url_for('meeting.my_sessions') }}" class="btn-primary">View My Sessions</a>
+  </div>
+</div>
+{% endblock %}

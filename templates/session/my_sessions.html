@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}My Sessions — SkillSwap{% endblock %}
+{% block extra_css %}
+<style>
+.sessions-wrap { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:24px; }
+.session-card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:20px; }
+.session-card h3 { font-size:15px; margin:0 0 6px; }
+.session-meta { font-size:13px; color:var(--muted); margin-bottom:12px; }
+.status-badge { display:inline-block; font-size:11px; padding:3px 10px; border-radius:50px; font-weight:500; }
+.status-pending   { background:rgba(255,180,0,0.15);   color:#ffb400; }
+.status-accepted  { background:rgba(30,200,120,0.15);  color:#1ec878; }
+.status-completed { background:rgba(108,71,255,0.15);  color:var(--accent); }
+.status-cancelled { background:rgba(255,80,80,0.15);   color:#ff5050; }
+.section-title { font-size:18px; font-weight:600; margin-bottom:12px; }
+@media(max-width:700px){ .sessions-wrap{grid-template-columns:1fr;} }
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-container">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <h1>My Sessions</h1>
+    <a href="{{ url_for('matching.matches') }}" class="btn-primary">+ Book a Session</a>
+  </div>
+
+  <div class="sessions-wrap">
+    <div>
+      <div class="section-title">Sessions I Booked</div>
+      {% for s in booked %}
+      <div class="session-card" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between;">
+          <h3>{{ s.title }}</h3>
+          <span class="status-badge status-{{ s.status }}">{{ s.status }}</span>
+        </div>
+        <div class="session-meta">
+          with {{ s.host.name }} &middot;
+          {{ s.scheduled_at.strftime('%d %b %Y, %H:%M') }} &middot;
+          {{ s.duration_minutes }} min
+        </div>
+        <a href="{{ url_for('session.detail', session_id=s.id) }}" class="btn-ghost" style="font-size:13px;">View</a>
+      </div>
+      {% else %}
+      <p style="color:var(--muted); font-size:14px;">No sessions booked yet.</p>
+      {% endfor %}
+    </div>
+
+    <div>
+      <div class="section-title">Sessions I'm Hosting</div>
+      {% for s in hosted %}
+      <div class="session-card" style="margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between;">
+          <h3>{{ s.title }}</h3>
+          <span class="status-badge status-{{ s.status }}">{{ s.status }}</span>
+        </div>
+        <div class="session-meta">
+          with {{ s.booker.name }} &middot;
+          {{ s.scheduled_at.strftime('%d %b %Y, %H:%M') }} &middot;
+          {{ s.duration_minutes }} min
+        </div>
+        <a href="{{ url_for('session.detail', session_id=s.id) }}" class="btn-ghost" style="font-size:13px;">View</a>
+      </div>
+      {% else %}
+      <p style="color:var(--muted); font-size:14px;">No sessions hosted yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
